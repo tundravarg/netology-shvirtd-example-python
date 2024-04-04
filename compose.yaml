@@ -20,10 +20,16 @@ services:
       - MYSQL_USER
       - MYSQL_PASSWORD
     restart: on-failure
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-pYtReWq4321"]
+      interval: 1s
+      timeout: 1s
+      retries: 30
 
   web:
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     image: *web_image
     build:
       dockerfile: Dockerfile.python
