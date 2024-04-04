@@ -1,0 +1,40 @@
+version: '3.8'
+
+x-var-web_image: &web_image ${WEB_IMAGE:-py-service:unver}
+
+include:
+  - proxy.yaml
+
+services:
+
+  db:
+    image: mysql
+    networks:
+      backend: 
+        ipv4_address: &db_address '172.20.0.10'
+    ports:
+      - 127.0.0.1:3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+    restart: on-failure
+
+  web:
+    depends_on:
+      - db
+    image: *web_image
+    build:
+      dockerfile: Dockerfile.python
+    networks:
+      backend:
+        ipv4_address: 172.20.0.5
+    ports:
+      - 127.0.0.1:8050:5000
+    environment:
+      DB_HOST: *db_address
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    restart: on-failure
